@@ -1,36 +1,20 @@
-import multiprocessing
-from pathlib import Path
+import concurrent.futures as pool
 import time
+from pathlib import Path
 
-vacancy_name = input('Введите название профессии: ')
 class PrintingStatistic:
-    """
-       Обрабатывает параметры вводимые пользователями: название файла, название профессии;
-       печатает статистику на экран
-    """
+
     def __init__(self, file_name):
-        """
-        Инициализирует класс PrintingStatistic.
-        :param file_name: string: Имя обрабатываемого файла
-        """
+
         self.file_name = file_name
 
     def print_data(self):
-        """Печатает статистику на экран, создает таблицы, графики и отчет с данными."""
         vacancies_objects = statisticsReport.DataSet(self.file_name).vacancies_objects
-        return PrintingStatistic.print_analytical_data(vacancies_objects, vacancy_name)
+        return PrintingStatistic.print_analytical_data(vacancies_objects, 'Программист')
 
     @staticmethod
     def print_analytical_data(vacancies_objects, vacancy_name):
-        """
-        Печатает статистику зарплаты и количества вакансий по годам и городам;
-        добавляет словари со статистикой в списки:
-        list_analytical_dict_year, list_analytical_dict_city, list_analytical_dict_city_1
-        для создания таблиц, графиков и отчета.
-        :param vacancies_objects: Список с вакансиями, на основе которого создается статистика (list)
-        :param vacancy_name: Название вакансии, по которой будет выбираться статистика (str)
-        :return list словарей
-        """
+
         vacancies_dict = vacancies_objects
         years = set()
         for vacancy in vacancies_dict:
@@ -62,20 +46,12 @@ class PrintingStatistic:
         return [years_salary_dictionary, years_count_dictionary, years_salary_vacancy_dict, years_count_vacancy_dict]
 
 def main(file_name):
-    """
-    Создает объект InputConect, печатает данные и создает таблицы, графики и отчеты
-    по статистике средней зарплаты и количества вакансий.
-    """
     return PrintingStatistic(file_name).print_data()
 
 def get_multiproc():
-    """
-    Запускает многопроцессорность выполнения обработки CSV-файлов;
-    печатает статистику.
-    """
     fname = [f for f in Path(input('Введите название папки: ')).glob('*.csv')]
-    with multiprocessing.Pool(processes=8) as p:
-        result = p.map(main, fname)
+    with pool.ThreadPoolExecutor(max_workers=4) as executer:
+        result = executer.map(main, fname)
     years_salary_dictionary = {}
     years_count_dictionary = {}
     years_salary_vacancy_dict = {}
